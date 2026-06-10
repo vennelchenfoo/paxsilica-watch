@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pax Silica Watch — Who pays for the chips?</title>
+<meta name="description" content="Tracking the Pax Silica Economic Security Zone in New Clark City, Philippines: the affected Aeta and farming communities, the environment, the supply chain, and who actually profits.">
+
+<!-- Leaflet (cdnjs so it also previews inside Claude) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+<!-- Type: Anton (display) · IBM Plex Sans (body) · IBM Plex Mono (data) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    /* Palette grounded in the subject: lahar ash, nickel-laterite rust, silica sand */
+    --bg:#14161A;
+    --raise:#1B1F26;
+    --line:#2B303A;
+    --ink:#E9E4D8;
+    --muted:#9A968B;
+    --rust:#C2502B;
+    --rust-bright:#E0653A;
+    --sand:#D9C9A3;
+    --confirmed:#D9C9A3;
+    --alleged:#E0653A;
+    --contested:#8B919E;
+    --max:1080px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto}
+    *,*::before,*::after{animation:none!important;transition:none!important}
+  }
+  body{
+    background:var(--bg);color:var(--ink);
+    font-family:"IBM Plex Sans",system-ui,sans-serif;
+    font-size:17px;line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--rust);color:var(--bg)}
+  a{color:var(--sand)}
+  a:focus-visible,button:focus-visible{outline:2px solid var(--rust-bright);outline-offset:3px}
+
+  .wrap{max-width:var(--max);margin:0 auto;padding:0 22px}
+  .mono{font-family:"IBM Plex Mono",monospace}
+  .eyebrow{
+    font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--rust-bright);
+  }
+  h2.display, h1.display{
+    font-family:"Anton",sans-serif;font-weight:400;text-transform:uppercase;
+    letter-spacing:.01em;line-height:1.04;color:var(--ink);
+  }
+  .section{padding:84px 0;border-top:1px solid var(--line)}
+  .section-head{margin-bottom:36px;max-width:760px}
+  .section-head h2{font-size:clamp(1.7rem,3.6vw,2.6rem);margin-top:10px}
+  .section-head p.lede{color:var(--muted);margin-top:14px}
+
+  /* ---------- status badges ---------- */
+  .badge{
+    font-family:"IBM Plex Mono",monospace;font-size:.62rem;letter-spacing:.14em;
+    padding:3px 8px;border-radius:2px;white-space:nowrap;display:inline-block;
+  }
+  .badge.CONFIRMED{color:var(--confirmed);border:1px solid var(--confirmed)}
+  .badge.ALLEGED{color:var(--alleged);border:1px dashed var(--alleged)}
+  .badge.CONTESTED{color:var(--contested);border:1px dotted var(--contested)}
+
+  /* ---------- nav ---------- */
+  nav{
+    position:sticky;top:0;z-index:1000;background:rgba(20,22,26,.92);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--line);
+  }
+  nav .wrap{display:flex;align-items:center;gap:18px;height:54px}
+  nav .brand{font-family:"Anton",sans-serif;font-size:.95rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);text-decoration:none;flex-shrink:0}
+  nav .brand em{color:var(--rust-bright);font-style:normal}
+  nav .links{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+  nav .links::-webkit-scrollbar{display:none}
+  nav .links a{
+    font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--muted);text-decoration:none;padding:6px 10px;white-space:nowrap;border-radius:2px;
+  }
+  nav .links a:hover{color:var(--ink);background:var(--raise)}
+  nav .sign{
+    margin-left:auto;flex-shrink:0;font-family:"IBM Plex Mono",monospace;font-size:.7rem;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--bg);background:var(--rust);
+    padding:8px 14px;text-decoration:none;border-radius:2px;
+  }
+  nav .sign:hover{background:var(--rust-bright)}
+
+  /* ---------- hero ---------- */
+  header.hero{padding:96px 0 64px;position:relative;overflow:hidden}
+  header.hero::after{
+    content:"";position:absolute;inset:auto 0 0 0;height:1px;
+    background:linear-gradient(90deg,transparent,var(--rust) 30%,var(--rust) 70%,transparent);
+  }
+  .hero h1{font-size:clamp(2.4rem,6.4vw,4.6rem);margin:18px 0 26px;max-width:920px}
+  .hero h1 .accent{color:var(--rust-bright)}
+  .hero .standfirst{max-width:720px;color:var(--muted);font-size:1.06rem}
+  .hero .meta-row{margin-top:30px;display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+  .hero .updated{font-family:"IBM Plex Mono",monospace;font-size:.72rem;color:var(--muted);letter-spacing:.1em}
+  .legend{display:flex;gap:10px;flex-wrap:wrap}
+
+  /* ---------- stat strip ---------- */
+  .stats{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+    border:1px solid var(--line);border-radius:3px;overflow:hidden;margin-top:54px;
+  }
+  .stat{padding:22px 20px;border:1px solid var(--line);margin:-1px 0 0 -1px;background:var(--raise)}
+  .stat .v{font-family:"Anton",sans-serif;font-size:2.1rem;color:var(--sand);line-height:1}
+  .stat .u{font-family:"IBM Plex Mono",monospace;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--rust-bright);margin:6px 0 10px}
+  .stat .l{font-size:.84rem;color:var(--muted);line-height:1.5}
+  .stat .badge{margin-top:10px}
+
+  /* ---------- map ---------- */
+  #map{height:480px;border:1px solid var(--line);border-radius:3px;background:var(--raise)}
+  .leaflet-container{font-family:"IBM Plex Sans",sans-serif}
+  .leaflet-popup-content-wrapper{background:var(--raise);color:var(--ink);border:1px solid var(--line);border-radius:3px}
+  .leaflet-popup-tip{background:var(--raise)}
+  .leaflet-popup-content{margin:14px 16px;font-size:.85rem;line-height:1.55}
+  .leaflet-popup-content h4{font-family:"Anton",sans-serif;font-weight:400;letter-spacing:.02em;font-size:1rem;margin-bottom:6px;color:var(--sand)}
+  .leaflet-popup-content .pp{color:var(--muted);font-size:.78rem}
+  .area-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:18px}
+  .area-card{background:var(--raise);border:1px solid var(--line);border-left:3px solid var(--rust);border-radius:3px;padding:20px}
+  .area-card.secondary{border-left-color:var(--contested)}
+  .area-card h3{font-family:"Anton",sans-serif;font-weight:400;font-size:1.05rem;letter-spacing:.02em;margin-bottom:4px}
+  .area-card .where{font-family:"IBM Plex Mono",monospace;font-size:.7rem;color:var(--rust-bright);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px}
+  .area-card p{font-size:.86rem;color:var(--muted);margin-bottom:10px}
+  .area-card .kv{font-size:.8rem;color:var(--ink);margin-bottom:6px}
+  .area-card .kv span{color:var(--muted)}
+
+  /* ---------- people ---------- */
+  .people-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:44px;align-items:start}
+  .people-text p{margin-bottom:18px;color:var(--ink)}
+  .people-text p:first-of-type::first-letter{
+    font-family:"Anton",sans-serif;font-size:3.1rem;float:left;line-height:.85;
+    padding-right:10px;color:var(--rust-bright);
+  }
+  .voice{border:1px solid var(--line);border-radius:3px;padding:16px 18px;margin-bottom:12px;background:var(--raise)}
+  .voice .who{font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--sand);margin-bottom:8px}
+  .voice p{font-size:.86rem;color:var(--muted);margin-bottom:10px}
+
+  /* ---------- ledger ---------- */
+  .ledger{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);border-radius:3px;overflow:hidden}
+  .ledger-col{padding:28px}
+  .ledger-col.promised{background:var(--raise);border-right:1px solid var(--line)}
+  .ledger-col h3{font-family:"Anton",sans-serif;font-weight:400;font-size:1.2rem;letter-spacing:.04em;text-transform:uppercase;margin-bottom:18px}
+  .ledger-col.promised h3{color:var(--muted)}
+  .ledger-col.documented h3{color:var(--rust-bright)}
+  .ledger-col li{list-style:none;font-size:.9rem;color:var(--muted);padding:12px 0 12px 22px;position:relative;border-bottom:1px dashed var(--line)}
+  .ledger-col li:last-child{border-bottom:none}
+  .ledger-col.promised li::before{content:"\201C";position:absolute;left:0;top:10px;color:var(--muted);font-family:"Anton",sans-serif;font-size:1.2rem}
+  .ledger-col.documented li{color:var(--ink)}
+  .ledger-col.documented li::before{content:"\25A0";position:absolute;left:0;top:14px;color:var(--rust);font-size:.55rem}
+
+  /* ---------- environment ---------- */
+  .env-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
+  .env-card{background:var(--raise);border:1px solid var(--line);border-radius:3px;padding:20px}
+  .env-card h3{font-family:"Anton",sans-serif;font-weight:400;font-size:1rem;letter-spacing:.03em;margin-bottom:10px;color:var(--sand)}
+  .env-card p{font-size:.85rem;color:var(--muted);margin-bottom:12px}
+
+  /* ---------- value ladder (signature) ---------- */
+  .ladder{display:flex;flex-direction:column;gap:0;border-left:2px solid var(--line);margin-left:6px}
+  .rung{position:relative;padding:26px 0 26px 34px;border-bottom:1px dashed var(--line)}
+  .rung:last-child{border-bottom:none}
+  .rung::before{
+    content:"";position:absolute;left:-7px;top:34px;width:12px;height:12px;
+    background:var(--bg);border:2px solid var(--rust);border-radius:50%;
+  }
+  .rung .stage-row{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;margin-bottom:4px}
+  .rung h3{font-family:"Anton",sans-serif;font-weight:400;font-size:1.25rem;letter-spacing:.02em}
+  .rung .where{font-family:"IBM Plex Mono",monospace;font-size:.7rem;color:var(--rust-bright);letter-spacing:.12em;text-transform:uppercase}
+  .rung .who{font-size:.9rem;color:var(--ink);margin-bottom:12px;max-width:680px}
+  .rung .bar-track{height:14px;background:var(--raise);border:1px solid var(--line);border-radius:2px;max-width:680px;overflow:hidden}
+  .rung .bar{height:100%;background:linear-gradient(90deg,var(--rust),var(--rust-bright));width:0;transition:width 1.1s cubic-bezier(.2,.7,.2,1)}
+  .rung .bar-label{font-family:"IBM Plex Mono",monospace;font-size:.66rem;color:var(--muted);letter-spacing:.1em;margin-top:6px;text-transform:uppercase}
+  .rung .keeps{font-size:.84rem;color:var(--muted);margin-top:10px;max-width:680px}
+  .ladder-note{margin-top:22px;font-size:.8rem;color:var(--muted);max-width:680px;font-style:italic}
+
+  /* ---------- companies table ---------- */
+  .table-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:3px}
+  table{width:100%;border-collapse:collapse;min-width:760px;font-size:.85rem}
+  thead th{
+    font-family:"IBM Plex Mono",monospace;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--rust-bright);text-align:left;padding:14px 16px;background:var(--raise);
+    border-bottom:1px solid var(--line);
+  }
+  tbody td{padding:13px 16px;border-bottom:1px solid var(--line);color:var(--muted);vertical-align:top}
+  tbody td:first-child{color:var(--ink);font-weight:500}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover td{background:rgba(194,80,43,.05)}
+
+  /* ---------- petition claims ---------- */
+  .claims{display:flex;flex-direction:column;gap:12px;max-width:820px}
+  .claim{display:flex;gap:16px;align-items:flex-start;background:var(--raise);border:1px solid var(--line);border-radius:3px;padding:16px 18px}
+  .claim p{font-size:.9rem;color:var(--ink);flex:1}
+  .claims-note{margin-top:18px;font-size:.82rem;color:var(--muted);max-width:820px;font-style:italic}
+
+  /* ---------- timeline ---------- */
+  .tl{max-width:820px}
+  .tl-item{display:grid;grid-template-columns:130px 1fr auto;gap:18px;padding:16px 0;border-bottom:1px dashed var(--line);align-items:baseline}
+  .tl-item:last-child{border-bottom:none}
+  .tl-date{font-family:"IBM Plex Mono",monospace;font-size:.74rem;color:var(--sand);letter-spacing:.06em}
+  .tl-event{font-size:.9rem;color:var(--muted)}
+
+  /* ---------- petition CTA ---------- */
+  .cta{
+    background:var(--rust);border-radius:3px;padding:54px 40px;text-align:left;
+    position:relative;overflow:hidden;
+  }
+  .cta h2{font-family:"Anton",sans-serif;font-weight:400;text-transform:uppercase;font-size:clamp(1.8rem,4.4vw,3rem);color:var(--bg);line-height:1.05}
+  .cta p{color:rgba(20,22,26,.85);max-width:640px;margin:16px 0 26px;font-size:1rem}
+  .cta .demands{margin:0 0 28px;padding:0}
+  .cta .demands li{list-style:none;color:var(--bg);font-size:.9rem;padding:7px 0 7px 24px;position:relative;font-weight:500}
+  .cta .demands li::before{content:"\2192";position:absolute;left:0;color:rgba(20,22,26,.6)}
+  .cta a.btn{
+    display:inline-block;background:var(--bg);color:var(--sand);text-decoration:none;
+    font-family:"IBM Plex Mono",monospace;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;
+    padding:16px 28px;border-radius:2px;
+  }
+  .cta a.btn:hover{color:var(--ink)}
+  .cta .credit{margin-top:18px;font-family:"IBM Plex Mono",monospace;font-size:.68rem;color:rgba(20,22,26,.65);letter-spacing:.08em}
+  details.embed{margin-top:26px}
+  details.embed summary{
+    cursor:pointer;font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.1em;
+    text-transform:uppercase;color:rgba(20,22,26,.8);
+  }
+  details.embed iframe{width:100%;height:900px;border:none;margin-top:16px;background:#fff;border-radius:3px}
+
+  /* ---------- FOI + sources ---------- */
+  .foi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  .foi-card{border:1px solid var(--line);border-radius:3px;padding:18px;background:var(--raise)}
+  .foi-card h4{font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--rust-bright);margin-bottom:8px}
+  .foi-card p{font-size:.84rem;color:var(--muted)}
+  .src-list{columns:2;column-gap:40px;max-width:980px}
+  .src-list li{list-style:none;font-size:.82rem;padding:7px 0;break-inside:avoid}
+  .src-list a{color:var(--muted);text-decoration:none;border-bottom:1px dotted var(--line)}
+  .src-list a:hover{color:var(--sand);border-bottom-color:var(--sand)}
+
+  footer{padding:48px 0 64px;border-top:1px solid var(--line)}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:18px;justify-content:space-between;align-items:center}
+  footer p{font-family:"IBM Plex Mono",monospace;font-size:.7rem;color:var(--muted);letter-spacing:.06em}
+
+  @media (max-width:820px){
+    .people-grid{grid-template-columns:1fr}
+    .ledger{grid-template-columns:1fr}
+    .ledger-col.promised{border-right:none;border-bottom:1px solid var(--line)}
+    .src-list{columns:1}
+    .tl-item{grid-template-columns:1fr;gap:4px}
+    .section{padding:60px 0}
+    .cta{padding:38px 24px}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#top">Pax Silica <em>Watch</em></a>
+    <div class="links">
+      <a href="#map-section">Map</a>
+      <a href="#people">People</a>
+      <a href="#ledger">Promised vs Real</a>
+      <a href="#environment">Environment</a>
+      <a href="#chain">Supply Chain</a>
+      <a href="#companies">Companies</a>
+      <a href="#timeline">Timeline</a>
+    </div>
+    <a class="sign" id="nav-sign" href="#petition">Sign the call</a>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <p class="eyebrow" id="hero-eyebrow"></p>
+    <h1 class="display" id="hero-headline"></h1>
+    <p class="standfirst" id="hero-standfirst"></p>
+    <div class="meta-row">
+      <div class="legend">
+        <span class="badge CONFIRMED">Confirmed</span>
+        <span class="badge ALLEGED">Alleged</span>
+        <span class="badge CONTESTED">Contested</span>
+      </div>
+      <span class="updated" id="updated"></span>
+    </div>
+    <div class="stats" id="stats"></div>
+  </div>
+</header>
+
+<section class="section" id="map-section">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">01 · Where</p>
+      <h2 class="display">The ground in question</h2>
+      <p class="lede">The Economic Security Zone is not an abstraction. It has coordinates, barangays, and people. Click a marker for details.</p>
+    </div>
+    <div id="map" role="img" aria-label="Map of affected areas in Central Luzon, Philippines"></div>
+    <div class="area-cards" id="area-cards"></div>
+  </div>
+</section>
+
+<section class="section" id="people">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">02 · Who lives there</p>
+      <h2 class="display" id="people-headline"></h2>
+    </div>
+    <div class="people-grid">
+      <div class="people-text" id="people-text"></div>
+      <div id="people-voices"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="ledger">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">03 · The ledger</p>
+      <h2 class="display">What was promised. What is documented.</h2>
+      <p class="lede">Megaproject announcements run on promises. This ledger keeps both columns in view at once.</p>
+    </div>
+    <div class="ledger">
+      <div class="ledger-col promised">
+        <h3>Promised</h3>
+        <ul id="ledger-promised"></ul>
+      </div>
+      <div class="ledger-col documented">
+        <h3>Documented</h3>
+        <ul id="ledger-documented"></ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="environment">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">04 · The land &amp; water</p>
+      <h2 class="display">Environmental stakes</h2>
+    </div>
+    <div class="env-grid" id="env-grid"></div>
+  </div>
+</section>
+
+<section class="section" id="chain">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">05 · Follow the value</p>
+      <h2 class="display">From Aeta land to your pocket</h2>
+      <p class="lede">Each step of the chain keeps a bigger share of the final value. The two steps that stay in the Philippines are the two thinnest bars.</p>
+    </div>
+    <div class="ladder" id="ladder"></div>
+    <p class="ladder-note">Bars are illustrative of relative value capture per stage, drawn from OECD analysis of the Philippine semiconductor ecosystem and documented royalty/wage figures — not precise accounting.</p>
+  </div>
+</section>
+
+<section class="section" id="companies">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">06 · The actors</p>
+      <h2 class="display">Companies &amp; institutions on record</h2>
+      <p class="lede">Updated as new investors are named. "Alleged" rows are claims by officials not yet matched by a named commitment.</p>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Name</th><th>Country</th><th>Role</th><th>Commitment</th><th>Status</th></tr></thead>
+        <tbody id="company-rows"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="claims">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">07 · The petition, checked</p>
+      <h2 class="display">Claim by claim</h2>
+      <p class="lede" id="claims-intro"></p>
+    </div>
+    <div class="claims" id="claims-list"></div>
+    <p class="claims-note" id="claims-note"></p>
+  </div>
+</section>
+
+<section class="section" id="timeline">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">08 · How we got here</p>
+      <h2 class="display">Timeline</h2>
+    </div>
+    <div class="tl" id="tl"></div>
+  </div>
+</section>
+
+<section class="section" id="petition">
+  <div class="wrap">
+    <div class="cta">
+      <h2>Shut the Pax down?<br>That's your call to make.</h2>
+      <p>If you've read this far, you know more about the zone than most of the people it will affect were ever told. The petition below — initiated by ILPS Philippines — demands:</p>
+      <ul class="demands" id="demands"></ul>
+      <a class="btn" id="petition-btn" href="#" target="_blank" rel="noopener">Sign the petition →</a>
+      <p class="credit">Petition by the International League of Peoples' Struggle (ILPS) Philippines. This site documents; the decision to sign is yours.</p>
+      <details class="embed">
+        <summary>Or sign right here without leaving the page</summary>
+        <iframe id="petition-iframe" title="SHUT THE PAX DOWN petition form" loading="lazy"></iframe>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="foi">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">09 · What we still don't know</p>
+      <h2 class="display">FOI requests anyone can file</h2>
+      <p class="lede">Under Philippine FOI (Executive Order No. 2, s. 2016 — efoi.gov.ph), any Filipino citizen can request these documents. Each one would close a gap in this page.</p>
+    </div>
+    <div class="foi-grid" id="foi-grid"></div>
+  </div>
+</section>
+
+<section class="section" id="sources">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">10 · Receipts</p>
+      <h2 class="display">Sources</h2>
+    </div>
+    <ul class="src-list" id="src-list"></ul>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p id="footer-updated"></p>
+    <p>Built from public records · Corrections welcome via repository issues</p>
+  </div>
+</footer>
+
+<script>
+/* ╔══════════════════════════════════════════════════════════╗
+   ║  EDITABLE DATA BLOCK — all site content lives below.      ║
+   ║  To update the site, edit ONLY this SITE_DATA object      ║
+   ║  (companies, coordinates, timeline, petition link, etc.)  ║
+   ║  then commit. Nothing below the closing tag needs edits.  ║
+   ╚══════════════════════════════════════════════════════════╝ */
+/* ============================================================
+   PAX SILICA WATCH — SITE DATA
+   ------------------------------------------------------------
+   This is the ONLY file you need to edit to update the site.
+   Add companies, change coordinates, update numbers, add
+   timeline events, fix names — then commit. The page rebuilds
+   itself from this data automatically.
+
+   STATUS values used across the site:
+     "CONFIRMED"  = sourced by independent reporting / documents
+     "ALLEGED"    = reported but not independently confirmed
+     "CONTESTED"  = parties actively dispute it
+   ============================================================ */
+
+const SITE_DATA = {
+
+  meta: {
+    siteTitle: "Pax Silica Watch",
+    tagline: "Who pays for the chips? Tracking the Pax Silica Economic Security Zone in the Philippines.",
+    lastUpdated: "2026-06-10",
+    petitionUrl: "https://docs.google.com/forms/d/e/1FAIpQLSe9ApSwjiWElliWtXZxHNFZ8UA28Q_u6tEdQv_ur2_H0XxKiw/viewform",
+    petitionEmbedUrl: "https://docs.google.com/forms/d/e/1FAIpQLSe9ApSwjiWElliWtXZxHNFZ8UA28Q_u6tEdQv_ur2_H0XxKiw/viewform?embedded=true",
+    officialSource: "https://paxsilica.org/",
+    referenceModel: "https://logistics-of-genocide.org/en"
+  },
+
+  hero: {
+    eyebrow: "An investigation · Central Luzon, Philippines",
+    headline: "A 1,619-hectare deal. Two years rent-free. The land was never empty.",
+    standfirst: "Pax Silica is a US-led, 13-nation alliance to secure the silicon and critical-minerals supply chain against China. Its first physical footprint is an \u201cEconomic Security Zone\u201d in New Clark City, Tarlac \u2014 on land Aeta indigenous communities and farmers have claimed for generations. This page documents who is promised what, who actually pays, and how your own devices connect to it."
+  },
+
+  // Headline stats — shown as the hero counter strip
+  stats: [
+    { value: "1,619", unit: "hectares", label: "Economic Security Zone inside New Clark City", status: "CONFIRMED" },
+    { value: "0", unit: "CADT granted", label: "Aeta ancestral-domain title applications (1999, 2014, 2025) still ungranted", status: "CONFIRMED" },
+    { value: "2 yrs", unit: "rent-free", label: "US occupies the zone rent-free as an \u201cin-kind contribution\u201d \u2014 terms after Year 3 undecided", status: "CONFIRMED" },
+    { value: "~\u20b18\u20139k", unit: "per year", label: "What indigenous households received from the 1% mining royalty at a documented Philippine nickel site", status: "CONFIRMED" },
+    { value: "$170B", unit: "est. nickel deposits", label: "Philippine nickel wealth feeding the alliance supply chain", status: "CONFIRMED" },
+    { value: "0", unit: "front-end fabs", label: "Semiconductor wafer fabs in the Philippines \u2014 the country is kept in low-margin assembly & packaging", status: "CONFIRMED" }
+  ],
+
+  // ===== MAP DATA (Leaflet) ==================================
+  // lat / lng in decimal degrees. radiusMeters draws the zone circle.
+  areas: [
+    {
+      name: "New Clark City Economic Security Zone (\u201cGolden Node\u201d)",
+      province: "Tarlac",
+      municipalities: "Capas / Bamban",
+      lat: 15.40, lng: 120.55,
+      radiusMeters: 4000,
+      type: "primary",
+      communities: ["Aeta Hungey", "Aeta Mahawang", "Abeling", "lowland farmers"],
+      barangays: ["Aranguren", "Kalangitan", "Cutcut (Sitio Sapang Kawayan)", "Sitio Alli", "Sitio Dalin", "Maruglu", "Anupul"],
+      population: "Up to 18,000\u201320,000 Aeta; ~15,000 farmers; up to 65,000 people across 12 villages (NGO estimates \u2014 contested by BCDA)",
+      summary: "1,619-ha hub within the 9,450-ha New Clark City. Site of the planned AI / semiconductor-packaging / minerals-processing zone. No Certificate of Ancestral Domain Title granted; no FPIC process documented.",
+      status: "CONFIRMED"
+    },
+    {
+      name: "Zambales coastal dredging (related sand-extraction issue)",
+      province: "Zambales",
+      municipalities: "San Felipe / San Narciso / Botolan / San Marcelino",
+      lat: 15.06, lng: 120.07,
+      radiusMeters: 6000,
+      type: "secondary",
+      communities: ["Fisherfolk (PAMALAKAYA)", "coastal residents of Brgy. Liwliwa and nearby"],
+      barangays: ["Liwliwa"],
+      population: "5,000+ fisherfolk affected (PAMALAKAYA estimate)",
+      summary: "Separate but related extraction front: river/seabed dredging under DENR DAO 2019-13 blamed by fisherfolk for coastal erosion (0.5\u20132.5 m/yr in lahar-affected coasts), lost homes and uprooted trees. DENR/MGB dispute the causal link. A Senate probe flagged Chinese-linked dredging vessels.",
+      status: "CONTESTED"
+    }
+  ],
+
+  // ===== THE PEOPLE ==========================================
+  people: {
+    headline: "The land was never empty",
+    paragraphs: [
+      "The zone sits on ground the Aeta \u2014 among the first peoples of Luzon \u2014 have lived on, farmed and foraged since long before the US bases, before New Clark City, before Pax Silica. The Aeta Hungey applied for a Certificate of Ancestral Domain Title covering ~18,000 hectares in 1999, again in 2014, and again in 2025. None has been granted.",
+      "Because no CADT exists on paper, the Bases Conversion and Development Authority (BCDA) holds that there is \u201cno ancestral domain\u201d \u2014 and therefore no displacement and no Free, Prior and Informed Consent (FPIC) required under the Indigenous Peoples\u2019 Rights Act (RA 8371). Critics call this a legal technicality that turns a paperwork backlog into a license to build.",
+      "In December 2019, BCDA served a seven-day eviction notice on roughly 500 Aeta families in Barangay Aranguren for an airport access road. BCDA says it offered \u20b1300,000 per hectare, relocation, and now employs 500 Aeta; some local Aeta leaders and the Capas mayor say no one was displaced. Aeta organizations such as AKMA, farmer groups, and rights advocates say otherwise. Both positions are documented below \u2014 readers can weigh them."
+    ],
+    voices: [
+      { who: "Aeta organizations (e.g., AKMA \u2014 Asosasyon ng Katutubong Mahawang) & rights groups", position: "Displacement is real and ongoing; FPIC was never obtained; the CADT delay is itself the injustice.", status: "ALLEGED" },
+      { who: "BCDA, Capas municipal government, some Aeta leaders", position: "No CADT means no ancestral domain on record; compensation, relocation and jobs were offered; no displacement occurred.", status: "CONTESTED" },
+      { who: "Makabayan bloc legislators (ACT Teachers, Gabriela, Kabataan)", position: "Demand congressional review and full transparency of the zone\u2019s terms before any construction.", status: "CONFIRMED" }
+    ]
+  },
+
+  // ===== PROMISED vs DOCUMENTED (the ledger) =================
+  ledger: {
+    promised: [
+      { text: "100,000+ jobs from the hub (BCDA); up to 1,000,000 across the Luzon Economic Corridor (Marcos administration)." },
+      { text: "A \u201csecure, resilient, innovation-driven\u201d supply chain and an \u201cAI-native industrial acceleration hub.\u201d" },
+      { text: "$250M initial US Pax Silica Fund; consortium with SoftBank, Temasek, Mubadala targeting ~$1 trillion AUM." },
+      { text: "Up-to-500 MW solar plant (ACWA Power), \u20b17B grid substation (NGCP), smart-grid systems (Esyasoft)." }
+    ],
+    documented: [
+      { text: "No front-end semiconductor fab exists or is committed in the Philippines. The country\u2019s role is assembly, testing and packaging \u2014 the most labor-intensive, lowest-margin link in the chain (OECD)." },
+      { text: "Indigenous communities near a documented Philippine nickel operation received ~\u20b18,000\u20139,000 per household per year from the legally mandated 1% royalty, while a handful of leaders captured far larger shares (Global Witness)." },
+      { text: "The US requested the zone operate under US common law with diplomatic immunity \u2014 \u201cthe first arrangement of its kind anywhere in the world\u201d (WSJ). Manila publicly rejected it; the binding Supplemental Agreement is still unsigned." },
+      { text: "Rent-free occupation for two years as the Philippines\u2019 \u201cin-kind contribution.\u201d Terms from Year 3: \u201cto be discussed.\u201d" },
+      { text: "No project-specific Environmental Compliance Certificate publicly on record as of June 2026. No disclosed binding investment totals. No named anchor tenant." }
+    ]
+  },
+
+  // ===== ENVIRONMENT =========================================
+  environment: [
+    { title: "Land conversion", text: "Rice and agricultural land inside the 1,619-ha zone converted to industrial use; earlier New Clark City construction re-routed the Cutcut and Marimla rivers, and a construction quarry pond drowned three children.", status: "CONFIRMED" },
+    { title: "Water & power draw", text: "AI data centers and minerals processing are water- and power-hungry. Planned: up-to-500 MW solar + storage, a \u20b17B substation, jet-fuel/LNG pipelines. Cumulative impact assessment: not public.", status: "CONFIRMED" },
+    { title: "Coastal erosion (Zambales front)", text: "Fisherfolk and the Zambales Ecological Network blame river/seabed dredging for erosion destroying homes, a 1-km coastal road and 300+ Agoho trees. DENR/MGB attribute erosion mainly to Pinatubo lahar dynamics. Both claims documented; causality contested.", status: "CONTESTED" },
+    { title: "No ECC on record", text: "As of the last update, no Environmental Compliance Certificate application for the Pax Silica hub itself has been publicly reported. An FOI request to DENR-EMB can verify (see FOI guide below).", status: "CONFIRMED" }
+  ],
+
+  // ===== SUPPLY CHAIN — THE VALUE LADDER =====================
+  // phShare: rough relative share of final value captured at that
+  // stage by the Philippines (0–100, illustrative for the chart).
+  supplyChain: [
+    {
+      stage: "Extraction",
+      where: "Philippines",
+      who: "Nickel, copper, cobalt, rare-earth mining (world\u2019s largest nickel-ore exporter; ~$170B est. deposits)",
+      valueShare: 8,
+      keepsValue: "Mining royalties & wages. Host LGUs: up to 40% of national mining excise; IP communities: minimum 1% royalty \u2014 documented at ~\u20b18\u20139k/household/yr.",
+      status: "CONFIRMED"
+    },
+    {
+      stage: "Assembly, Test & Packaging (ATP)",
+      where: "Philippines (Clark, Baguio, Laguna\u2026)",
+      who: "Texas Instruments, Amkor, Analog Devices, Onsemi, STMicro, ASE \u2014 3.2M direct & indirect workers; ~53% of PH exports",
+      valueShare: 15,
+      keepsValue: "Wages in the most labor-intensive, lowest-margin segment. No wafer fabrication happens in the country.",
+      status: "CONFIRMED"
+    },
+    {
+      stage: "Refining & wafer fabrication",
+      where: "Taiwan \u00b7 South Korea \u00b7 Japan \u00b7 USA",
+      who: "TSMC, Samsung, SK Hynix, Intel (tooling: ASML, Netherlands)",
+      valueShare: 45,
+      keepsValue: "The technology, the IP, the margins. This is the step deliberately kept out of the Philippines.",
+      status: "CONFIRMED"
+    },
+    {
+      stage: "Devices & AI infrastructure",
+      where: "USA \u00b7 global brands",
+      who: "Apple, Nvidia, hyperscale data centers",
+      valueShare: 75,
+      keepsValue: "Brand, design and platform profit. An iPhone or AI GPU embodies Philippine minerals and Philippine packaging labor at a fraction of its price.",
+      status: "CONFIRMED"
+    },
+    {
+      stage: "Your pocket",
+      where: "Consumer markets worldwide",
+      who: "Phones, laptops, cars, solar panels, the AI answering your questions",
+      valueShare: 100,
+      keepsValue: "If you own a device, you are the last node of this chain. That is the connection this page exists to make visible.",
+      status: "CONFIRMED"
+    }
+  ],
+
+  // ===== COMPANIES & ACTORS ==================================
+  // Add new rows here as investors are named. role + country + status.
+  companies: [
+    { name: "US State Department (Pax Silica initiative)", country: "USA", role: "Initiator & convener \u2014 architect: Under Sec. Jacob Helberg", commitment: "$250M Pax Silica Fund (Mar 2026)", status: "CONFIRMED" },
+    { name: "BCDA (Bases Conversion & Dev. Authority)", country: "Philippines", role: "Landholder & PH counterparty; screens locators", commitment: "1,619 ha rent-free for 2 yrs", status: "CONFIRMED" },
+    { name: "ACWA Power", country: "Saudi Arabia", role: "Up-to-500 MW solar + storage; ~500-ha lease", commitment: "MOU", status: "CONFIRMED" },
+    { name: "Esyasoft Technologies (IHC)", country: "UAE", role: "Smart grid / digital energy systems", commitment: "MOU", status: "CONFIRMED" },
+    { name: "National Grid Corp. of the Philippines", country: "Philippines", role: "Grid substation for the zone", commitment: "\u20b17B, target end-2028", status: "CONFIRMED" },
+    { name: "Marubeni / Sustech / Index Strategy / Yachiyo", country: "Japan", role: "Energy & transport infrastructure MOUs (May 2026)", commitment: "MOUs", status: "CONFIRMED" },
+    { name: "SoftBank", country: "Japan", role: "Pax Silica Fund consortium", commitment: "Consortium targets ~$1T AUM", status: "CONFIRMED" },
+    { name: "Temasek", country: "Singapore", role: "Fund consortium; Dec 2025 summit participant", commitment: "Consortium", status: "CONFIRMED" },
+    { name: "Mubadala", country: "UAE", role: "Fund consortium", commitment: "Consortium", status: "CONFIRMED" },
+    { name: "Texas Instruments", country: "USA", role: "Existing ATP plants (Baguio since 1979, Clark)", commitment: "~$1B, ~3,000 jobs", status: "CONFIRMED" },
+    { name: "Amkor Technology", country: "USA", role: "Existing OSAT packaging in PH", commitment: "Operating", status: "CONFIRMED" },
+    { name: "TSMC / Samsung / SK Hynix / Intel", country: "Taiwan / KR / USA", role: "Downstream chip fabrication (offtakers of the chain)", commitment: "No PH commitment", status: "CONFIRMED" },
+    { name: "Apple / Nvidia", country: "USA", role: "Downstream devices & AI hardware", commitment: "No PH commitment named", status: "CONFIRMED" },
+    { name: "\u201cOver a dozen\u201d unnamed US firms", country: "USA", role: "Claimed interested locators (per Helberg)", commitment: "Unnamed, unverified", status: "ALLEGED" }
+  ],
+
+  // ===== TIMELINE ============================================
+  timeline: [
+    { date: "2018\u20132019", event: "New Clark City construction; Aeta and farmer eviction pressure begins; Dec 2019 seven-day eviction notice to ~500 Aeta families in Aranguren.", status: "CONFIRMED" },
+    { date: "2025-12-12", event: "Pax Silica launched at Washington summit convened by Under Secretary Jacob Helberg; framed explicitly as countering China\u2019s grip on minerals (China refined ~91% of rare earths in 2024 \u2014 IEA).", status: "CONFIRMED" },
+    { date: "2026-02-04", event: "US\u2013Philippines Critical Minerals Framework MOU signed.", status: "CONFIRMED" },
+    { date: "2026-03", event: "$250M Pax Silica Fund announced; consortium with SoftBank, Temasek, Mubadala.", status: "CONFIRMED" },
+    { date: "2026-04-16", event: "Philippines becomes 13th signatory; 4,000-acre (1,619-ha) Economic Security Zone announced for New Clark City.", status: "CONFIRMED" },
+    { date: "2026-04", event: "WSJ reports US sought US-common-law jurisdiction and diplomatic immunity inside the zone; BCDA publicly rejects \u2014 \u201cno special arrangement.\u201d Helberg says remarks \u201ctaken out of context.\u201d", status: "CONTESTED" },
+    { date: "2026-05-18", event: "Helberg unveils site marker at New Clark City; says top American firms are keen on the hub.", status: "CONFIRMED" },
+    { date: "2026-06", event: "Binding Supplemental Agreement still unsigned; no ECC, no named anchor tenant, no disclosed investment totals.", status: "CONFIRMED" },
+    { date: "by end-2028", event: "Targeted groundbreaking / grid switch-on.", status: "CONFIRMED" }
+  ],
+
+  // ===== PETITION CLAIMS — ASSESSED ==========================
+  petitionAssessment: {
+    intro: "The petition \u201cSHUT THE PAX DOWN!\u201d is initiated by the International League of Peoples\u2019 Struggle (ILPS) Philippines. In the spirit of honest campaigning, this page labels each of its central claims against the documented record:",
+    claims: [
+      { claim: "A ~1,600-ha Economic Security Zone in New Clark City, on ancestral and agricultural land ~90 km NW of Manila, threatens displacement of Aeta and farming communities.", status: "CONFIRMED" },
+      { claim: "US officials pushed for special jurisdictional control, immunity provisions and extraordinary legal protections inside the zone.", status: "CONFIRMED" },
+      { claim: "The zone sits within the US\u2013Japan\u2013PH Luzon Economic Corridor and is promoted as an \u201cAI-native investment acceleration hub.\u201d", status: "CONFIRMED" },
+      { claim: "The project is an aggressive maneuver for US tech-military supremacy and \u201cwar production,\u201d linked to US/Israeli military technology.", status: "ALLEGED" }
+    ],
+    note: "\u201cALLEGED\u201d does not mean false \u2014 it means interpretation beyond what documents currently prove. Semiconductors are dual-use; EDCA military sites and Balikatan exercises surround the corridor; the US Senate approved $2.5B in Foreign Military Financing for the Philippines (2026\u20132030). Readers can judge the pattern."
+  },
+
+  petitionDemands: [
+    "Reject Pax Silica and its Economic Security Zone",
+    "Stop any foreign jurisdictional control or immunity provisions on Philippine soil",
+    "Halt the displacement of Aeta and farming communities; grant the CADT; require genuine FPIC",
+    "Reject militarized development of Central Luzon",
+    "Pursue genuine national industrialization and economic sovereignty",
+    "Ecological sustainability and peoples\u2019 rights over foreign profit"
+  ],
+
+  // ===== FOI GUIDE ===========================================
+  foi: [
+    { agency: "BCDA / DTI / Board of Investments", request: "The signed Supplemental Agreement, lease terms after Year 2, named locators, binding investment commitments." },
+    { agency: "DENR-EMB", request: "Any Environmental Compliance Certificate application for the New Clark City hub." },
+    { agency: "NCIP", request: "Status of the Aeta Hungey CADT applications (1999 / 2014 / 2025) and any FPIC records for the zone." },
+    { agency: "Department of Finance", request: "Projected revenue-sharing splits: national government vs. LGUs vs. communities vs. foreign locators." }
+  ],
+
+  // ===== SOURCES =============================================
+  sources: [
+    { label: "US State Dept \u2014 4,000-acre Economic Security Zone announcement (Apr 2026)", url: "https://www.state.gov/releases/office-of-the-spokesperson/2026/04/the-united-states-and-the-philippines-launch-plans-for-4000-acre-economic-security-zone-to-shore-up-supply-chains-first-ai-native-industrial-acceleration-hub-under-pax-silica" },
+    { label: "Rappler \u2014 What is Pax Silica? Goals and concerns", url: "https://www.rappler.com/technology/features/things-to-know-pax-silica-philippines-goals-concerns/" },
+    { label: "Rappler \u2014 Sci-tech coalition opposes Pax Silica over \u2018resource plunder\u2019", url: "https://www.rappler.com/technology/stop-us-war-coalition-pax-silica-resource-plunder-criticism/" },
+    { label: "Rappler \u2014 Aetas and New Clark City: trampling on the rights of first peoples", url: "https://www.rappler.com/voices/thought-leaders/246881-analysis-aetas-new-clark-city-trampling-on-human-rights/" },
+    { label: "The Diplomat \u2014 Philippines\u2019 \u2018smart city\u2019 threatens tribal displacement", url: "https://thediplomat.com/2020/01/philippines-smart-city-threatens-tribal-displacement/" },
+    { label: "Inquirer \u2014 New Clark City: development for whom?", url: "https://newsinfo.inquirer.net/1139364/new-clark-city-development-for-whom" },
+    { label: "BCDA \u2014 statement on seven-day eviction notice", url: "https://bcda.gov.ph/news/statement-re-seven-day-notice-evacuate" },
+    { label: "BusinessMirror \u2014 Helberg: top American firms keen on Pax Silica hub", url: "https://businessmirror.com.ph/2026/05/18/helberg-top-american-firms-keen-on-pax-silica-luzon-hub/" },
+    { label: "Daily Tribune \u2014 US eyes first Pax Silica industrial hub in New Clark City", url: "https://tribune.net.ph/2026/05/18/us-eyes-first-pax-silica-industrial-hub-in-new-clark-city" },
+    { label: "Tom\u2019s Hardware \u2014 $250M fund, \u2018$4T\u2019 target questioned", url: "https://www.tomshardware.com/tech-industry/semiconductors/trump-administration-targets-4-trillion-pax-silica-investment-fund-for-semiconductors" },
+    { label: "GMA News \u2014 Senate probe into Zambales dredging", url: "https://www.gmanetwork.com/news/topstories/nation/900392/senate-probe-into-unabated-dredging-in-zambales-by-chinese-workers-sought/story/" },
+    { label: "GMA News \u2014 MGB disputes dredging-erosion link", url: "https://www.gmanetwork.com/news/topstories/regions/952834/mgb-rules-out-dredging-as-cause-of-zambales-beach-erosion/story/" },
+    { label: "International Intrigue \u2014 \u2018Behold\u2026 Pax Silica!\u2019", url: "https://www.internationalintrigue.io/behold-pax-silica/" },
+    { label: "The petition \u2014 SHUT THE PAX DOWN! (ILPS Philippines)", url: "https://docs.google.com/forms/d/e/1FAIpQLSe9ApSwjiWElliWtXZxHNFZ8UA28Q_u6tEdQv_ur2_H0XxKiw/viewform" }
+  ]
+};
+</script>
+<script>
+(function(){
+ try {
+  const D = SITE_DATA;
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const badge = s => `<span class="badge ${esc(s)}">${esc(s)}</span>`;
+
+  /* hero */
+  document.getElementById('hero-eyebrow').textContent = D.hero.eyebrow;
+  document.getElementById('hero-headline').innerHTML =
+    esc(D.hero.headline).replace('1,619-hectare', '<span class="accent">1,619-hectare</span>');
+  document.getElementById('hero-standfirst').textContent = D.hero.standfirst;
+  document.getElementById('updated').textContent = 'LAST UPDATED ' + D.meta.lastUpdated;
+  document.getElementById('footer-updated').textContent =
+    D.meta.siteTitle.toUpperCase() + ' · LAST UPDATED ' + D.meta.lastUpdated;
+
+  /* stats */
+  document.getElementById('stats').innerHTML = D.stats.map(s => `
+    <div class="stat">
+      <div class="v">${esc(s.value)}</div>
+      <div class="u">${esc(s.unit)}</div>
+      <div class="l">${esc(s.label)}</div>
+      ${badge(s.status)}
+    </div>`).join('');
+
+  /* map — guarded so a blocked CDN can never blank the rest of the page */
+  try {
+    if (typeof L === 'undefined') throw new Error('Leaflet not loaded');
+    const map = L.map('map', {scrollWheelZoom:false}).setView([15.25, 120.35], 9);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+      maxZoom: 18
+    }).addTo(map);
+
+    D.areas.forEach(a => {
+      const color = a.type === 'primary' ? '#C2502B' : '#8B919E';
+      L.circle([a.lat, a.lng], {
+        radius: a.radiusMeters, color, weight: 1.5, fillColor: color, fillOpacity: .18
+      }).addTo(map);
+      L.circleMarker([a.lat, a.lng], {
+        radius: 7, color: '#14161A', weight: 2, fillColor: color, fillOpacity: 1
+      }).addTo(map).bindPopup(`
+        <h4>${esc(a.name)}</h4>
+        <p class="pp"><strong>${esc(a.province)}</strong> · ${esc(a.municipalities)}</p>
+        <p style="margin:8px 0">${esc(a.summary)}</p>
+        <p class="pp">Communities: ${a.communities.map(esc).join(', ')}</p>
+        <p class="pp" style="margin-top:6px">${esc(a.population)}</p>
+      `);
+    });
+  } catch (err) {
+    document.getElementById('map').innerHTML =
+      '<p style="padding:24px;font-family:IBM Plex Mono,monospace;font-size:.78rem;color:#9A968B">' +
+      'Interactive map could not load in this environment — full location details are in the cards below. ' +
+      'It will display on the live site.</p>';
+  }
+
+  /* area cards */
+  document.getElementById('area-cards').innerHTML = D.areas.map(a => `
+    <div class="area-card ${a.type === 'secondary' ? 'secondary' : ''}">
+      <h3>${esc(a.name)}</h3>
+      <div class="where">${esc(a.province)} · ${esc(a.municipalities)} · ${a.lat.toFixed(2)}, ${a.lng.toFixed(2)}</div>
+      <p>${esc(a.summary)}</p>
+      <div class="kv"><span>Barangays / sitios:</span> ${a.barangays.map(esc).join(' · ')}</div>
+      <div class="kv"><span>Communities:</span> ${a.communities.map(esc).join(', ')}</div>
+      <div class="kv"><span>People affected:</span> ${esc(a.population)}</div>
+      ${badge(a.status)}
+    </div>`).join('');
+
+  /* people */
+  document.getElementById('people-headline').textContent = D.people.headline;
+  document.getElementById('people-text').innerHTML =
+    D.people.paragraphs.map(p => `<p>${esc(p)}</p>`).join('');
+  document.getElementById('people-voices').innerHTML = D.people.voices.map(v => `
+    <div class="voice">
+      <div class="who">${esc(v.who)}</div>
+      <p>${esc(v.position)}</p>
+      ${badge(v.status)}
+    </div>`).join('');
+
+  /* ledger */
+  document.getElementById('ledger-promised').innerHTML =
+    D.ledger.promised.map(i => `<li>${esc(i.text)}</li>`).join('');
+  document.getElementById('ledger-documented').innerHTML =
+    D.ledger.documented.map(i => `<li>${esc(i.text)}</li>`).join('');
+
+  /* environment */
+  document.getElementById('env-grid').innerHTML = D.environment.map(e => `
+    <div class="env-card">
+      <h3>${esc(e.title)}</h3>
+      <p>${esc(e.text)}</p>
+      ${badge(e.status)}
+    </div>`).join('');
+
+  /* value ladder */
+  document.getElementById('ladder').innerHTML = D.supplyChain.map(s => `
+    <div class="rung">
+      <div class="stage-row">
+        <h3>${esc(s.stage)}</h3>
+        <span class="where">${esc(s.where)}</span>
+      </div>
+      <p class="who">${esc(s.who)}</p>
+      <div class="bar-track"><div class="bar" data-w="${Number(s.valueShare)}"></div></div>
+      <div class="bar-label">Relative value captured at this stage: ${Number(s.valueShare)}%</div>
+      <p class="keeps">${esc(s.keepsValue)}</p>
+    </div>`).join('');
+
+  /* animate bars on scroll */
+  const bars = document.querySelectorAll('.bar');
+  const grow = b => { b.style.width = b.dataset.w + '%'; };
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver(entries => entries.forEach(e => {
+      if (e.isIntersecting) { grow(e.target); io.unobserve(e.target); }
+    }), {threshold:.4});
+    bars.forEach(b => io.observe(b));
+  } else { bars.forEach(grow); }
+
+  /* companies */
+  document.getElementById('company-rows').innerHTML = D.companies.map(c => `
+    <tr>
+      <td>${esc(c.name)}</td>
+      <td>${esc(c.country)}</td>
+      <td>${esc(c.role)}</td>
+      <td>${esc(c.commitment)}</td>
+      <td>${badge(c.status)}</td>
+    </tr>`).join('');
+
+  /* petition claims */
+  document.getElementById('claims-intro').textContent = D.petitionAssessment.intro;
+  document.getElementById('claims-list').innerHTML = D.petitionAssessment.claims.map(c => `
+    <div class="claim">${badge(c.status)}<p>${esc(c.claim)}</p></div>`).join('');
+  document.getElementById('claims-note').textContent = D.petitionAssessment.note;
+
+  /* timeline */
+  document.getElementById('tl').innerHTML = D.timeline.map(t => `
+    <div class="tl-item">
+      <div class="tl-date">${esc(t.date)}</div>
+      <div class="tl-event">${esc(t.event)}</div>
+      <div>${badge(t.status)}</div>
+    </div>`).join('');
+
+  /* petition */
+  document.getElementById('petition-btn').href = D.meta.petitionUrl;
+  document.getElementById('nav-sign').href = '#petition';
+  document.getElementById('petition-iframe').src = D.meta.petitionEmbedUrl;
+  document.getElementById('demands').innerHTML =
+    D.petitionDemands.map(d => `<li>${esc(d)}</li>`).join('');
+
+  /* FOI */
+  document.getElementById('foi-grid').innerHTML = D.foi.map(f => `
+    <div class="foi-card"><h4>${esc(f.agency)}</h4><p>${esc(f.request)}</p></div>`).join('');
+
+  /* sources */
+  document.getElementById('src-list').innerHTML = D.sources.map(s => `
+    <li><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.label)}</a></li>`).join('');
+ } catch (err) {
+   document.body.insertAdjacentHTML('afterbegin',
+     '<div style="background:#C2502B;color:#14161A;padding:14px 22px;font-family:monospace;font-size:.8rem">' +
+     'Render error: ' + String(err).replace(/[<>]/g,'') + ' — check the SITE_DATA block for a syntax issue.</div>');
+   console.error(err);
+ }
+})();
+</script>
+</body>
+</html>
