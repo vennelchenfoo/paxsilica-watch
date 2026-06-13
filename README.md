@@ -1,11 +1,22 @@
-# Pax Silica Watch
+# Pax Silica PH Watch
 
 A free, static campaign site documenting the impact of the Pax Silica Economic
-Security Zone (New Clark City, Tarlac, Philippines): affected communities,
-livelihoods, environment, the global supply chain, and the petition to stop it.
+Security Zone (New Clark City, Tarlac, Philippines): the 14-nation alliance, the
+affected Aeta and farming communities, the agreements and jurisdiction dispute,
+the environment, the global supply chain, the campaigns for and against, and the
+petition to stop it.
 
 **Everything is ONE file:** `index.html`. Open it in any browser and it works —
 no build step, no server, no dependencies to install.
+
+### How it behaves
+- **Section deck.** Each scroll/swipe/arrow fades to the next section instead of
+  scrolling the page. Long sections scroll internally first, then advance at the
+  edge. Use the dot-nav (right edge), the top nav, or keyboard (PageUp/PageDown,
+  Home/End). Under "reduced motion" the fades become instant cuts.
+- **Click to go deeper.** Cards, nations, ledger lines, supply-chain rungs,
+  company rows, petition claims and campaign cards open a modal with the detail
+  and a source link. Press Esc or click outside to close.
 
 ---
 
